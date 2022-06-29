@@ -44,6 +44,7 @@
  * F term_apply - configure a device to the settings in "nexttermios"
  * F term_revert - discard "nexttermios" by copying-over "currtermios"
  * F term_refresh - update "currtermios" from the device
+ * F term_set_rs485 - set the rs485 mode of a device
  * F term_set_raw - set "nexttermios" to raw mode
  * F term_set_baudrate - set the baudrate in "nexttermios"
  * F term_set_parity - set the parity mode in "nexttermios"
@@ -382,6 +383,14 @@ int term_reset (int fd);
  * the currtermios structure remains unaffected.
  */
 int term_refresh (int fd);
+
+/* F term_set_rs485
+ *
+ * Sets the managed filedes "fd" to rs485 mode.
+ *
+ * Returns negative on failure, non-negative on success.
+ */
+int term_set_rs485 (int fd, int status);
 
 /* F term_set_raw
  *

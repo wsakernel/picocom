@@ -43,9 +43,13 @@
  * CMSPAR, so we use the value from the generic bits/termios.h
  */
 #ifdef __linux__
+#define USE_RS485
 #ifndef CMSPAR
 #define CMSPAR 010000000000
 #endif
+#endif
+#ifdef USE_RS485
+#include <linux/serial.h>
 #endif
 
 /* Some BSDs (and possibly other systems too) have no mark / space
@@ -752,6 +756,56 @@ term_apply (int fd, int now)
         else
             term.origtermios[i].c_cflag &= ~HUPCL;
 
+    } while (0);
+
+    return rval;
+}
+
+/***************************************************************************/
+
+int
+term_set_rs485 (int fd, int status)
+{
+    int rval, i;
+
+    rval = 0;
+
+    do { /* dummy */
+
+        i = term_find(fd);
+        if ( i < 0 ) {
+            rval = -1;
+            break;
+        }
+
+#ifdef USE_RS485
+#ifdef USE_IOCTL
+        {
+            int r;
+
+            struct serial_rs485 rs485conf;
+            memset(&rs485conf, 0x0, sizeof(struct serial_rs485));
+
+            if ( status == 1 ) {
+                rs485conf.flags |= SER_RS485_ENABLED;
+                rs485conf.flags |= SER_RS485_RTS_ON_SEND;
+                rs485conf.flags &= ~(SER_RS485_RTS_AFTER_SEND);
+            }
+
+            r = ioctl(fd, TIOCSRS485, &rs485conf);
+            if ( r < 0 ) {
+                rval = -1;
+                break;
+            }
+        }
+#else
+        rval = -1;
+#endif /* of USE_IOCTL */
+#else
+        /* If 485 not available return error only if trying to set 485 mode */
+        if ( status == 1 )
+            rval = -1
+#endif
     } while (0);
 
     return rval;

@@ -218,6 +218,7 @@ struct {
     int lower_dtr;
     int raise_rts;
     int raise_dtr;
+    int rs485;
     int quiet;
 } opts = {
     .port = NULL,
@@ -248,6 +249,7 @@ struct {
     .lower_dtr = 0,
     .raise_rts = 0,
     .raise_dtr = 0,
+    .rs485 = 0,
     .quiet = 0
 };
 
@@ -1657,6 +1659,7 @@ show_usage(char *name)
     printf("  --raise-rts\n");
     printf("  --lower-dtr\n");
     printf("  --raise-dtr\n");
+    printf("  --rs485\n");
     printf("  --<q>uiet\n");
     printf("  --<h>elp\n");
     printf("<map> is a comma-separated list of one or more of:\n");
@@ -1716,6 +1719,7 @@ parse_args(int argc, char *argv[])
         {"lower-dtr", no_argument, 0, 2},
         {"raise-rts", no_argument, 0, 3},
         {"raise-dtr", no_argument, 0, 4},
+        {"rs485", no_argument, 0, '4'},
         {"quiet", no_argument, 0, 'q'},
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
@@ -1909,6 +1913,9 @@ parse_args(int argc, char *argv[])
         case 'q':
             opts.quiet = 1;
             break;
+        case '4':
+            opts.rs485 = 1;
+            break;
         case 'h':
             show_usage(argv[0]);
             exit(EXIT_SUCCESS);
@@ -1954,6 +1961,7 @@ parse_args(int argc, char *argv[])
     printf("picocom v%s\n", VERSION_STR);
     printf("\n");
     printf("port is        : %s\n", opts.port);
+    printf("rs485 mode     : %s\n", opts.rs485 ? "enabled" : "disabled");
     printf("flowcontrol    : %s\n", flow_str[opts.flow]);
     printf("baudrate is    : %d\n", opts.baud);
     printf("parity is      : %s\n", parity_str[opts.parity]);
@@ -2098,6 +2106,15 @@ main (int argc, char *argv[])
     /* Set DTR and RTS status, as quickly as possible after opening
        the serial port (i.e. before configuring it) */
     set_dtr_rts();
+
+    if ( opts.rs485 )
+        r = term_set_rs485(tty_fd, 1);
+    else
+        r = term_set_rs485(tty_fd, 0);
+
+    if ( r < 0 )
+        pinfo("!! failed to set rs485 mode !!");
+
     r = term_apply(tty_fd, 0);
     if ( r < 0 )
         fatal("failed to config port: %s",
