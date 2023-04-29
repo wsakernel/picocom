@@ -1,4 +1,0 @@
-#!/bin/sh
-exec picocom \
-    --send-cmd="sx -b -vv" \
-    --receive-cmd="rx -b -vv" "$@"

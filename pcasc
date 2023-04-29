@@ -1,4 +1,0 @@
-#!/bin/sh
-exec picocom \
-    --send-cmd="ascii-xfr -senv -l5" \
-    --receive-cmd="ascii-xfr -rnv" "$@"
